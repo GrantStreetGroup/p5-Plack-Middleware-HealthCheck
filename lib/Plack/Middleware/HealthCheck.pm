@@ -94,8 +94,7 @@ sub serve_health_check {
             if exists $query_params->{$param};
     }
 
-    local $SIG{__WARN__}
-        = sub { $env->{'psgi.errors'}->printflush($_) for @_ };
+    local $SIG{__WARN__} = sub { $env->{'psgi.errors'}->print($_) for @_ };
     return $self->health_check_response(
         $self->health_check->check(%check_params), $req );
 }

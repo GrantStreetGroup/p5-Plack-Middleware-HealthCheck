@@ -330,6 +330,7 @@ sub call {
     my ($self, $env) = @_;
 
     open my $err_fh, '>', \my $errors or die $!;
+    $err_fh->autoflush;
     $env->{'psgi.errors'} = $err_fh;
 
     $self->response_cb( $self->app->($env), sub {
