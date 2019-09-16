@@ -101,6 +101,29 @@ throws_ok { Plack::Middleware::HealthCheck->new(
         "Have custom paths, even with a health_check object";
 }
 
+{ note "Falsy health_check_paths doesn't serve health_check";
+    my $mw = Plack::Middleware::HealthCheck->new(
+        health_check => HealthCheck->new,
+        health_check_paths => undef );
+
+    is_deeply $mw->health_check_paths, undef,
+        "HealthCheckPaths can be set to undef";
+
+    foreach my $path ( '/healthz', '/_healthcheck', @unicode_paths ) {
+        ok !$mw->should_serve_health_check( { PATH_INFO => $path } ),
+            "[$path] Should NOT serve health_check";
+    }
+
+    test_psgi( $mw->wrap( $psgi_app ), sub {
+        my ($cb) = @_;
+        foreach my $path ( '/healthz', '/_healthcheck', @unicode_paths ) {
+            my $res = $cb->( GET $path );
+            is $res->content, 'Hello World',
+                "[$path] Didn't serve health_check";
+        }
+    } );
+}
+
 { note "Pass tags from query string to health_check->check";
     my %args;
     my $args_ok = sub {
