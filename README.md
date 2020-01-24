@@ -70,9 +70,6 @@ although `tags` are always passed by ["serve\_health\_check"](#serve_health_chec
 Called with the Plack `$env` hash as an argument
 if ["should\_serve\_health\_check"](#should_serve_health_check) returns true.
 
-Returns a `403` forbidden response unless `$env->{REMOTE_ADDR}`
-["is\_gsg\_ip" in Shared::Network](https://metacpan.org/pod/Shared%3A%3ANetwork#is_gsg_ip).
-
 Reads the query parameters for any `tags` or other ["allowed\_params"](#allowed_params)
 and then calls
 the ["health\_check"](#health_check) check method with those parameters as well as passing

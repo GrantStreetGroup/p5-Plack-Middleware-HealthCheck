@@ -177,9 +177,6 @@ although C<tags> are always passed by L</serve_health_check>.
 Called with the Plack C<$env> hash as an argument
 if L</should_serve_health_check> returns true.
 
-Returns a C<403> forbidden response unless C<< $env->{REMOTE_ADDR} >>
-L<Shared::Network/is_gsg_ip>.
-
 Reads the query parameters for any C<tags> or other L</allowed_params>
 and then calls
 the L</health_check> check method with those parameters as well as passing
