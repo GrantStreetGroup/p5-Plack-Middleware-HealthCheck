@@ -136,6 +136,30 @@ are passed to the check with L</allowed_params>.
         allowed_params     => [ 'foo', 'bar' ],
     );
 
+Since you don't want to serve this HealthCheck everywhere on the internet, you
+should limit its access with an IP whitelist.
+
+    # Using enable_if
+    use Plack::Builder;
+
+    builder {
+        enable_if { $_[0]->{REMOTE_ADDR} =~ /^10\./ } 'HealthCheck',
+            health_check => HealthCheck->new(...),
+        ;
+        $psgi_app;
+    };
+
+    # OO interface
+    $app = Plack::Middleware::Conditional->wrap(
+        $psgi_app,
+        condition  => sub { $_[0]->{REMOTE_ADDR} =~ /^10\./ },
+        builder => sub {
+            Plack::Middleware::HealthCheck->wrap( $psgi_app,
+                health_check => HealthCheck->new(...),
+            )
+        },
+    );
+
 =head1 DESCRIPTION
 
 Does a basic health check for your app, by default responding on
