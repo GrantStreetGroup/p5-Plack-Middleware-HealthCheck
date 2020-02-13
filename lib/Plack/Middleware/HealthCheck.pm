@@ -235,7 +235,7 @@ L<HealthCheck>
 
 =head1 SEE ALSO
 
-The GSG L<Health Check Standard|https://support.grantstreet.com/wiki/display/AC/Health+Check+Standard>
+The GSG L<Health Check Standard|https://grantstreetgroup.github.io/HealthCheck.html>
 
 =head1 CONFIGURATION AND ENVIRONMENT
 

@@ -25,6 +25,31 @@ are passed to the check with ["allowed\_params"](#allowed_params).
         allowed_params     => [ 'foo', 'bar' ],
     );
 
+Since you don't want to serve this HealthCheck everywhere on the internet, you
+should limit its access,
+for example using [Plack::Middleware::Conditional](https://metacpan.org/pod/Plack%3A%3AMiddleware%3A%3AConditional) to limit by IP address.
+
+    # Using enable_if
+    use Plack::Builder;
+
+    builder {
+        enable_if { $_[0]->{REMOTE_ADDR} =~ /^10\./ } 'HealthCheck',
+            health_check => HealthCheck->new(...),
+        ;
+        $psgi_app;
+    };
+
+    # OO interface
+    $app = Plack::Middleware::Conditional->wrap(
+        $psgi_app,
+        condition  => sub { $_[0]->{REMOTE_ADDR} =~ /^10\./ },
+        builder => sub {
+            Plack::Middleware::HealthCheck->wrap( $psgi_app,
+                health_check => HealthCheck->new(...),
+            )
+        },
+    );
+
 # DESCRIPTION
 
 Does a basic health check for your app, by default responding on
@@ -103,7 +128,7 @@ in which case it will make the JSON response both `pretty` and `canonical`.
 
 # SEE ALSO
 
-The GSG [Health Check Standard](https://support.grantstreet.com/wiki/display/AC/Health+Check+Standard)
+The GSG [Health Check Standard](https://grantstreetgroup.github.io/HealthCheck.html)
 
 # CONFIGURATION AND ENVIRONMENT
 
