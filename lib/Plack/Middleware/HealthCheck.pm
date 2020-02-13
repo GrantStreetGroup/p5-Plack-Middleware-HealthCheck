@@ -137,7 +137,8 @@ are passed to the check with L</allowed_params>.
     );
 
 Since you don't want to serve this HealthCheck everywhere on the internet, you
-should limit its access with an IP whitelist.
+should limit its access,
+for example using L<Plack::Middleware::Conditional> to limit by IP address.
 
     # Using enable_if
     use Plack::Builder;
