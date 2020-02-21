@@ -4,7 +4,7 @@ Plack::Middleware::HealthCheck - A health check endpoint for your Plack app
 
 # VERSION
 
-version 0.0.1
+version v0.0.3
 
 # SYNOPSIS
 
@@ -23,6 +23,31 @@ are passed to the check with ["allowed\_params"](#allowed_params).
         health_check       => HealthCheck->new(...),
         health_check_paths => ['/_healthcheck'],
         allowed_params     => [ 'foo', 'bar' ],
+    );
+
+Since you don't want to serve this HealthCheck everywhere on the internet, you
+should limit its access,
+for example using [Plack::Middleware::Conditional](https://metacpan.org/pod/Plack%3A%3AMiddleware%3A%3AConditional) to limit by IP address.
+
+    # Using enable_if
+    use Plack::Builder;
+
+    builder {
+        enable_if { $_[0]->{REMOTE_ADDR} =~ /^10\./ } 'HealthCheck',
+            health_check => HealthCheck->new(...),
+        ;
+        $psgi_app;
+    };
+
+    # OO interface
+    $app = Plack::Middleware::Conditional->wrap(
+        $psgi_app,
+        condition  => sub { $_[0]->{REMOTE_ADDR} =~ /^10\./ },
+        builder => sub {
+            Plack::Middleware::HealthCheck->wrap( $psgi_app,
+                health_check => HealthCheck->new(...),
+            )
+        },
     );
 
 # DESCRIPTION
@@ -70,9 +95,6 @@ although `tags` are always passed by ["serve\_health\_check"](#serve_health_chec
 Called with the Plack `$env` hash as an argument
 if ["should\_serve\_health\_check"](#should_serve_health_check) returns true.
 
-Returns a `403` forbidden response unless `$env->{REMOTE_ADDR}`
-["is\_gsg\_ip" in Shared::Network](https://metacpan.org/pod/Shared::Network#is_gsg_ip).
-
 Reads the query parameters for any `tags` or other ["allowed\_params"](#allowed_params)
 and then calls
 the ["health\_check"](#health_check) check method with those parameters as well as passing
@@ -95,18 +117,18 @@ otherwise returns a 503.
 
 The body of the response is the `$result` JSON encoded.
 
-Also takes an optional [Plack::Request](https://metacpan.org/pod/Plack::Request) object as a second argument
+Also takes an optional [Plack::Request](https://metacpan.org/pod/Plack%3A%3ARequest) object as a second argument
 which it will check for the existence of a `pretty` query parameter
 in which case it will make the JSON response both `pretty` and `canonical`.
 
 # DEPENDENCIES
 
-[Plack::Middleware](https://metacpan.org/pod/Plack::Middleware),
+[Plack::Middleware](https://metacpan.org/pod/Plack%3A%3AMiddleware),
 [HealthCheck](https://metacpan.org/pod/HealthCheck)
 
 # SEE ALSO
 
-The GSG [Health Check Standard](https://support.grantstreet.com/wiki/display/AC/Health+Check+Standard)
+The GSG [Health Check Standard](https://grantstreetgroup.github.io/HealthCheck.html)
 
 # CONFIGURATION AND ENVIRONMENT
 
@@ -118,10 +140,8 @@ Grant Street Group <developers@grantstreet.com>
 
 # COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2019 by Grant Street Group.  No
-license is granted to other entities.
+This software is Copyright (c) 2019 - 2020 by Grant Street Group.
 
-# CONTRIBUTORS
+This is free software, licensed under:
 
-- Authors:
-- (2) Andrew Hewus Fresh <andrew.fresh@grantstreet.com>
+    The Artistic License 2.0 (GPL Compatible)

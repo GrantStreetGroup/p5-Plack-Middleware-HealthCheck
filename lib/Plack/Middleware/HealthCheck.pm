@@ -136,6 +136,31 @@ are passed to the check with L</allowed_params>.
         allowed_params     => [ 'foo', 'bar' ],
     );
 
+Since you don't want to serve this HealthCheck everywhere on the internet, you
+should limit its access,
+for example using L<Plack::Middleware::Conditional> to limit by IP address.
+
+    # Using enable_if
+    use Plack::Builder;
+
+    builder {
+        enable_if { $_[0]->{REMOTE_ADDR} =~ /^10\./ } 'HealthCheck',
+            health_check => HealthCheck->new(...),
+        ;
+        $psgi_app;
+    };
+
+    # OO interface
+    $app = Plack::Middleware::Conditional->wrap(
+        $psgi_app,
+        condition  => sub { $_[0]->{REMOTE_ADDR} =~ /^10\./ },
+        builder => sub {
+            Plack::Middleware::HealthCheck->wrap( $psgi_app,
+                health_check => HealthCheck->new(...),
+            )
+        },
+    );
+
 =head1 DESCRIPTION
 
 Does a basic health check for your app, by default responding on
@@ -177,9 +202,6 @@ although C<tags> are always passed by L</serve_health_check>.
 Called with the Plack C<$env> hash as an argument
 if L</should_serve_health_check> returns true.
 
-Returns a C<403> forbidden response unless C<< $env->{REMOTE_ADDR} >>
-L<Shared::Network/is_gsg_ip>.
-
 Reads the query parameters for any C<tags> or other L</allowed_params>
 and then calls
 the L</health_check> check method with those parameters as well as passing
@@ -213,7 +235,7 @@ L<HealthCheck>
 
 =head1 SEE ALSO
 
-The GSG L<Health Check Standard|https://support.grantstreet.com/wiki/display/AC/Health+Check+Standard>
+The GSG L<Health Check Standard|https://grantstreetgroup.github.io/HealthCheck.html>
 
 =head1 CONFIGURATION AND ENVIRONMENT
 

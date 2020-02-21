@@ -1,5 +1,3 @@
-use GSG::Gitc::CPANfile $_environment;
-
 requires 'JSON';
 requires 'Plack::Middleware';
 requires 'Plack::Request';
@@ -13,5 +11,5 @@ on test => sub {
 };
 
 on develop => sub {
-    requires 'Dist::Zilla::PluginBundle::Author::GSG::Internal';
+    requires 'Dist::Zilla::PluginBundle::Author::GSG';
 };
