@@ -151,6 +151,9 @@ throws_ok { Plack::Middleware::HealthCheck->new(
         $cb->( GET '/' );
         $args_ok->( {}, "No query_string" );
 
+        $cb->( GET '/?runtime=1' );
+        $args_ok->( { runtime   => ['1']}, "Default runtime support working" );
+
         $cb->( GET '/?foo=bar&qux=quux' );
         $args_ok->( {}, "No tags" );
 
@@ -181,6 +184,9 @@ throws_ok { Plack::Middleware::HealthCheck->new(
             allowed_params => 'weather',
             health_check   => $hc ) => sub {
         my ($cb) = @_;
+
+        $cb->( GET '/?runtime=1' );
+        $args_ok->({}, "Override on runtime support working");
 
         $cb->( GET '/?weather=sunshine&tags=get_weather' );
         $args_ok->(

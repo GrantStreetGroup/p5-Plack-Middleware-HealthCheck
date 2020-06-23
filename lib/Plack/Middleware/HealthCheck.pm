@@ -32,28 +32,30 @@ sub new {
         croak "health_check parameter required";
     }
 
+    # Adding default params if none specified
+    $params{allowed_params} = [qw< runtime >]
+        unless exists $params{allowed_params};
+
     # custom query param filter validation
-    if ( $params{allowed_params} ) {
-        my $error = "HealthCheck allowed_params must be an arrayref of strings";
-        my $ref   = Scalar::Util::reftype $params{allowed_params};
+    my $error = "HealthCheck allowed_params must be an arrayref of strings";
+    my $ref   = Scalar::Util::reftype $params{allowed_params};
 
-        if ( !$ref ) {    # someone sent a scalar; massage it
-            $params{allowed_params} = [ $params{allowed_params} ];
-        }
-        elsif ( $ref ne 'ARRAY' ) {
-            croak "$error; found $ref";
-        }
-
-        foreach my $param ( @{ $params{allowed_params} } ) {
-            if ( my $ref = Scalar::Util::reftype $param ) {
-                croak "$error; found $ref value";
-            }
-            elsif ( lc $param eq 'env' ) {
-                croak "Cannot overload \%env params";
-            }
-        }
+    if ( !$ref ) {    # someone sent a scalar; massage it
+        $params{allowed_params} = [ $params{allowed_params} ];
+    }
+    elsif ( $ref ne 'ARRAY' ) {
+        croak "$error; found $ref";
     }
 
+    foreach my $param ( @{ $params{allowed_params} } ) {
+        if ( my $ref = Scalar::Util::reftype $param ) {
+            croak "$error; found $ref value";
+        }
+        elsif ( lc $param eq 'env' ) {
+            croak "Cannot overload \%env params";
+        }
+        warn $param;
+    }
     return $class->SUPER::new(
         health_check_paths => ['/healthz'],
         %params,
@@ -90,9 +92,21 @@ sub serve_health_check {
     my %check_params = ( env => $env );
 
     foreach my $param ( @{$allowed_params}, 'tags' ) {
-        $check_params{$param} = [ $query_params->get_all($param) ]
-            if exists $query_params->{$param};
+        if( exists $query_params->{$param} ){
+
+            # if runtime is provided but empty, it should still be enabled
+            my $is_runtime_empty = ($param eq 'runtime' &&
+                length( $query_params->get_all($param) ) == 0);
+
+            $check_params{$param} =
+                [ $is_runtime_empty ? 1 : $query_params->get_all($param) ];
+        }
     }
+
+    # Do not override if runtime=0
+    my $is_zero = (exists $check_params{runtime} && !$check_params{runtime}[0]);
+    $check_params{runtime} = [1] if exists $req->query_parameters->{pretty} &&
+        !$is_zero;
 
     local $SIG{__WARN__} = sub { $env->{'psgi.errors'}->print($_) for @_ };
     return $self->health_check_response(
@@ -129,6 +143,9 @@ You can serve the results from different L</health_check_paths> than the default
 and you can specify which query parameters,
 other than the always allowed C<tags>,
 are passed to the check with L</allowed_params>.
+Runtime support is enabled by default,
+but can be overridden by specifying an L</allowed_params> configuration,
+like the one below, that does not include C<runtime>.
 
     $psgi_app = HealthCheck::Diagnostic::LoadAverage->wrap( $psgi_app,
         health_check       => HealthCheck->new(...),
@@ -192,8 +209,8 @@ set this to an empty arrayref (C<[]>).
 A list of C<query_params> to pass through to C<check>.
 Parameters are passed with the values in arrayrefs.
 
-Defaults to C<undef>,
-although C<tags> are always passed by L</serve_health_check>.
+Defaults to C<runtime>,
+and C<tags> are always passed by L</serve_health_check>.
 
 =head1 METHODS
 
