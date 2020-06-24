@@ -54,8 +54,8 @@ sub new {
         elsif ( lc $param eq 'env' ) {
             croak "Cannot overload \%env params";
         }
-        warn $param;
     }
+
     return $class->SUPER::new(
         health_check_paths => ['/healthz'],
         %params,
