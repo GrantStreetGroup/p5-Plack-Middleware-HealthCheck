@@ -177,8 +177,32 @@ is_deeply(
         $cb->( GET '/' );
         $args_ok->( {}, "No query_string" );
 
-        $cb->( GET '/?runtime=1' );
-        $args_ok->( { runtime   => ['1']}, "Default runtime support working" );
+        $cb->( GET '/?runtime' );
+        $args_ok->( { runtime => '1' }, "Default runtime support working" );
+
+        $cb->( GET '/?runtime=' );
+        $args_ok->( { runtime => '1' }, "Default runtime support working" );
+
+        $cb->( GET '/?runtime=2' );
+        $args_ok->( { runtime => '2' }, "We pass through the runtime value" );
+
+        $cb->( GET '/?pretty' );
+        $args_ok->( { runtime => '1' }, "A pretty result has runtime" );
+
+        $cb->( GET '/?pretty&runtime' );
+        $args_ok->( { runtime => '1' }, "A pretty result has runtime" );
+
+        $cb->( GET '/?pretty&runtime=0' );
+        $args_ok->(
+            { runtime => '0' },
+            "A pretty result can turn off runtime"
+        );
+
+        $cb->( GET '/?pretty&runtime=3&runtime=2&tags=foo&runtime=0' );
+        $args_ok->(
+            { runtime => '3', tags => ['foo'] },
+            "runtime gets the first query param"
+        );
 
         $cb->( GET '/?foo=bar&qux=quux' );
         $args_ok->( {}, "No tags" );
