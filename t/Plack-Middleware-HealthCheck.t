@@ -124,6 +124,32 @@ throws_ok { Plack::Middleware::HealthCheck->new(
     } );
 }
 
+is_deeply(
+    Plack::Middleware::HealthCheck->new( health_check => HealthCheck->new )
+        ->{allowed_params},
+    ['runtime'],
+    "allowed_params defaults to ['runtime']"
+);
+
+is_deeply(
+    Plack::Middleware::HealthCheck->new(
+        allowed_params => [qw< foo bar baz >],
+        health_check   => HealthCheck->new,
+    )->{allowed_params},
+    [qw< foo bar baz >],
+    "allowed_params can be overridden to an non-empty list"
+);
+
+is_deeply(
+    Plack::Middleware::HealthCheck->new(
+        allowed_params => [],
+        health_check   => HealthCheck->new,
+    )->{allowed_params},
+    [],
+    "allowed_params can be overridden to an empty list"
+);
+
+
 { note "Pass tags from query string to health_check->check";
     my %args;
     my $args_ok = sub {
