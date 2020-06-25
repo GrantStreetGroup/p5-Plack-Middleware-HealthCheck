@@ -212,6 +212,9 @@ Parameters are passed with the values in arrayrefs.
 Defaults to C<runtime>,
 and C<tags> are always passed by L</serve_health_check>.
 
+The C<runtime> parameter defaults to true if C<pretty> is specified,
+or it is in the query string without a value.
+
 =head1 METHODS
 
 =head2 serve_health_check
