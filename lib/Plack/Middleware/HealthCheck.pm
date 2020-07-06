@@ -93,20 +93,18 @@ sub serve_health_check {
 
     foreach my $param ( @{$allowed_params}, 'tags' ) {
         if( exists $query_params->{$param} ){
-
-            # if runtime is provided but empty, it should still be enabled
-            my $is_runtime_empty = ($param eq 'runtime' &&
-                length( $query_params->get_all($param) ) == 0);
-
-            $check_params{$param} =
-                [ $is_runtime_empty ? 1 : $query_params->get_all($param) ];
+            $check_params{$param} = [ $query_params->get_all($param) ]
+                if exists $query_params->{$param};
         }
     }
 
-    # Do not override if runtime=0
-    my $is_zero = (exists $check_params{runtime} && !$check_params{runtime}[0]);
-    $check_params{runtime} = [1] if exists $req->query_parameters->{pretty} &&
-        !$is_zero;
+    # turn on runtime if pretty and make param value scalar not array
+    if ( defined $check_params{runtime}
+        || defined $req->query_parameters->{pretty} ) {
+
+        $check_params{runtime} = defined $check_params{runtime}
+                ? $check_params{runtime}[0] : 1;
+    }
 
     local $SIG{__WARN__} = sub { $env->{'psgi.errors'}->print($_) for @_ };
     return $self->health_check_response(
