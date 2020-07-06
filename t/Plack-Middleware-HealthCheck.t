@@ -190,7 +190,7 @@ is_deeply(
         $args_ok->( { runtime => '1' }, "A pretty result has runtime" );
 
         $cb->( GET '/?pretty&runtime' );
-        $args_ok->( { runtime => '1' }, "A pretty result has runtime" );
+        $args_ok->( { runtime => '1' }, "A pretty+default result has runtime" );
 
         $cb->( GET '/?pretty&runtime=0' );
         $args_ok->(
