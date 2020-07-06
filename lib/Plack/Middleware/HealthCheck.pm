@@ -99,14 +99,11 @@ sub serve_health_check {
     }
 
     # turn on runtime if pretty and make param value scalar not array
-    if ( exists($check_params{runtime}) ){
-
-        $check_params{runtime} = ( $check_params{runtime}[0] eq '' )
-                    ? 1 : $check_params{runtime}[0];
-
+    if ( exists $check_params{runtime} ) {
+        $check_params{runtime}
+            = $check_params{runtime}[0] eq '' ? 1 : $check_params{runtime}[0];
     }
- 
-    elsif ( exists($req->query_parameters->{pretty}) ) {
+    elsif ( exists $req->query_parameters->{pretty} ) {
         $check_params{runtime} = 1;
     }
 
