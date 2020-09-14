@@ -119,7 +119,7 @@ sub health_check_response {
         if $req and exists $req->query_parameters->{pretty};
     return [
         ( $result->{status} || '' ) eq 'OK' ? 200 : 503,
-        [ content_type => 'application/json; charset=utf-8' ],
+        [ 'Content-Type' => 'application/json; charset=utf-8' ],
         [ $json->encode($result) ] ];
 }
 
