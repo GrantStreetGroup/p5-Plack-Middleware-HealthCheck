@@ -4,7 +4,7 @@ Plack::Middleware::HealthCheck - A health check endpoint for your Plack app
 
 # VERSION
 
-version v0.0.4
+version v0.0.5
 
 # SYNOPSIS
 
@@ -30,7 +30,7 @@ like the one below, that does not include `runtime`.
 
 Since you don't want to serve this HealthCheck everywhere on the internet, you
 should limit its access,
-for example using [Plack::Middleware::Conditional](https://metacpan.org/pod/Plack%3A%3AMiddleware%3A%3AConditional) to limit by IP address.
+for example using [Plack::Middleware::Conditional](https://metacpan.org/pod/Plack::Middleware::Conditional) to limit by IP address.
 
     # Using enable_if
     use Plack::Builder;
@@ -123,13 +123,13 @@ otherwise returns a 503.
 
 The body of the response is the `$result` JSON encoded.
 
-Also takes an optional [Plack::Request](https://metacpan.org/pod/Plack%3A%3ARequest) object as a second argument
+Also takes an optional [Plack::Request](https://metacpan.org/pod/Plack::Request) object as a second argument
 which it will check for the existence of a `pretty` query parameter
 in which case it will make the JSON response both `pretty` and `canonical`.
 
 # DEPENDENCIES
 
-[Plack::Middleware](https://metacpan.org/pod/Plack%3A%3AMiddleware),
+[Plack::Middleware](https://metacpan.org/pod/Plack::Middleware),
 [HealthCheck](https://metacpan.org/pod/HealthCheck)
 
 # SEE ALSO
@@ -142,7 +142,7 @@ None
 
 # AUTHOR
 
-Grant Street Group <developers@grantstreet.com>
+Grant Street Group &lt;developers@grantstreet.com>
 
 # COPYRIGHT AND LICENSE
 
