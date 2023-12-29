@@ -114,7 +114,7 @@ sub serve_health_check {
 
 sub health_check_response {
     my ( $self, $result, $req ) = @_;
-    my $json = JSON->new->utf8;
+    my $json = JSON->new->allow_blessed->convert_blessed->utf8;
     $json->canonical->pretty
         if $req and exists $req->query_parameters->{pretty};
     return [
