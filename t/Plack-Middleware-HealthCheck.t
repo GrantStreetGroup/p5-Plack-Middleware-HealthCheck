@@ -403,8 +403,7 @@ is_deeply(
         "JSON encoded result is compact";
 
     # Make sure it just needs to exist, not be set
-    $req->query_parameters->remove('pretty');
-    $req->query_parameters->add( pretty => undef );
+    $req->query_parameters->set( pretty => undef );
 
     # Hopefully JSON keeps making this pretty in the same way
     is_deeply $mw->health_check_response( { status => 'OK' }, $req ),
