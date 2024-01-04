@@ -8,6 +8,7 @@ use Test::Exception;
 use Test::More;
 use Test2::Tools::Mock  qw( mock );
 use Plack::Test;
+use Hash::MultiValue '>= 0.10'; # set method implemented in v0.10
 use HTTP::Request::Common;
 use JSON;
 use File::Temp qw();
@@ -402,7 +403,7 @@ is_deeply(
         [ 200, [@content_type], [qq({"status":"OK"}) ] ],
         "JSON encoded result is compact";
 
-    # Make sure it just needs to exist, not be set
+    # Make sure 'pretty' just needs to exist, not be set
     $req->query_parameters->set( pretty => undef );
 
     # Hopefully JSON keeps making this pretty in the same way
