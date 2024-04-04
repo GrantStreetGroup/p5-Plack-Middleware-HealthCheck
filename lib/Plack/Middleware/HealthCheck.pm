@@ -126,13 +126,9 @@ sub health_check_response {
     my $json = JSON->new->allow_blessed->convert_blessed->utf8;
     $json->canonical->pretty
         if $req and exists $req->query_parameters->{pretty};
-
-    my $response_code = $req && exists $req->query_parameters->{list_tags}
-        ? 200
-        : ( ( $result->{status} || '' ) eq 'OK' ? 200 : 503 );
-
     return [
-        $response_code,
+        ref $result eq 'ARRAY' || ( $result->{status} || '' ) eq 'OK'
+            ? 200 : 503,
         [ 'Content-Type' => 'application/json; charset=utf-8' ],
         [ $json->encode($result) ] ];
 }
