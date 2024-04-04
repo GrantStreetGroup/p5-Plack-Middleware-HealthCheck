@@ -108,8 +108,17 @@ sub serve_health_check {
     }
 
     local $SIG{__WARN__} = sub { $env->{'psgi.errors'}->print($_) for @_ };
-    return $self->health_check_response(
-        $self->health_check->check(%check_params), $req );
+
+    # either list tags or run the specified checks
+    my $result;
+    if (exists $req->query_parameters->{list_tags}) {
+        $result = [ $self->health_check->get_registered_tags ];
+    }
+    else {
+        $result = $self->health_check->check(%check_params);
+    }
+
+    return $self->health_check_response( $result, $req );
 }
 
 sub health_check_response {
@@ -117,8 +126,13 @@ sub health_check_response {
     my $json = JSON->new->allow_blessed->convert_blessed->utf8;
     $json->canonical->pretty
         if $req and exists $req->query_parameters->{pretty};
+
+    my $response_code = $req && exists $req->query_parameters->{list_tags}
+        ? 200
+        : ( ( $result->{status} || '' ) eq 'OK' ? 200 : 503 );
+
     return [
-        ( $result->{status} || '' ) eq 'OK' ? 200 : 503,
+        $response_code,
         [ 'Content-Type' => 'application/json; charset=utf-8' ],
         [ $json->encode($result) ] ];
 }
@@ -229,6 +243,10 @@ C<$env> under the "env" key.
 Returns the result of passing the health check C<$result>
 to L</health_check_response>.
 
+If the optional C<list_tags> query parameter is present, then a list of
+registered tags is returned and no checks are run. See
+L<HealthCheck/get_registered_tags>.
+
 =head2 should_serve_health_check
 
 Receives the Plack C<$env> as an argument and returns a truthy value
@@ -238,8 +256,8 @@ if C<< $env->{PATH_INFO} >> matches any of the L</health_check_paths>.
 
 Takes a health check C<$result> and returns a Plack response arrayref.
 
-Returns a 200 response if the C<< $result->{status} >> is "OK",
-otherwise returns a 503.
+Returns a 200 response if the C<< $result->{status} >> is "OK" or if the
+C<list_tags> query parameter is present, otherwise returns a 503.
 
 The body of the response is the C<$result> JSON encoded.
 

@@ -412,6 +412,40 @@ is_deeply(
         "JSON encoded result with ?pretty is pretty";
 }
 
+{ note "test list_tags";
+    my $mw = Plack::Middleware::HealthCheck->new(
+        health_check => HealthCheck->new );
+    my @content_type = ( 'Content-Type' => 'application/json; charset=utf-8' );
+
+    # Make sure it just needs to exist, not be set
+    my $env = {PATH_INFO => '/healthz', QUERY_STRING => 'list_tags'};
+
+    is_deeply $mw->serve_health_check( $env ),
+        [ 200, [@content_type], [qq([]) ] ],
+        "list_tags returns an empty list when no tags are registered";
+
+    $mw = Plack::Middleware::HealthCheck->new(
+        health_check => HealthCheck->new(
+            tags   => [qw( foo bar )],
+            checks => [ sub { status => 'OK' } ] ) );
+
+    is_deeply $mw->serve_health_check( $env ),
+        [ 200, [@content_type], [qq(["bar","foo"]) ] ],
+        "list_tags returns a list of registered tags";
+
+    $env = {PATH_INFO => '/healthz', QUERY_STRING => 'list_tags&pretty'};
+
+    is_deeply $mw->serve_health_check( $env ),
+        [ 200, [@content_type], [qq([\n   "bar",\n   "foo"\n]\n) ] ],
+        "list_tags works with pretty";
+
+    $env = {PATH_INFO => '/healthz', QUERY_STRING => 'list_tags&tags=foo'};
+
+    is_deeply $mw->serve_health_check( $env ),
+        [ 200, [@content_type], [qq(["bar","foo"]) ] ],
+        "list_tags ignores provided list of tags";
+}
+
 done_testing;
 
 package My::Middleware::ErrorCatcher;
