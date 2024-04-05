@@ -48,7 +48,7 @@ throws_ok { Plack::Middleware::HealthCheck->new(
     "Requires health_check parameter that can(check)";
 
 
-{note "should_serve_health_check from default paths";
+{note "should_serve_health_check and should_serve_tags_list from default paths";
     my @non_health_check_paths = (
         '/health', '/health_check',
         '/healthZ', '/HEALTHZ',
@@ -65,15 +65,19 @@ throws_ok { Plack::Middleware::HealthCheck->new(
     foreach my $path ( @{ $mw->health_check_paths } ) {
         ok $mw->should_serve_health_check( { PATH_INFO => $path } ),
             "[$path] Should serve health_check";
+        ok $mw->should_serve_tags_list( { PATH_INFO => "$path/tags" } ),
+            "[$path/tags] Should serve tags list";
     }
 
     foreach my $path (@non_health_check_paths) {
         ok !$mw->should_serve_health_check( { PATH_INFO => $path } ),
             "[$path] Should NOT serve health_check";
+        ok !$mw->should_serve_tags_list( { PATH_INFO => "$path/tags" } ),
+            "[$path/tags] Should NOT serve tags list";
     }
 }
 
-{ note "should_serve_health_check from custom paths";
+{ note "should_serve_health_check and should_serve_tags_list from custom paths";
     my @custom_paths = ( '/foo', '/bar', @unicode_paths );
 
     my $mw = Plack::Middleware::HealthCheck->new(
@@ -86,11 +90,15 @@ throws_ok { Plack::Middleware::HealthCheck->new(
     foreach my $path ( @{ $mw->health_check_paths } ) {
         ok $mw->should_serve_health_check( { PATH_INFO => $path } ),
             "[$path] Should serve health_check";
+        ok $mw->should_serve_tags_list( { PATH_INFO => "$path/tags" } ),
+            "[$path/tags] Should serve tags list";
     }
 
     foreach my $path ( '/healthz', '/_healthcheck' ) {
         ok !$mw->should_serve_health_check( { PATH_INFO => $path } ),
             "[$path] Should NOT serve health_check";
+        ok !$mw->should_serve_tags_list( { PATH_INFO => "$path/tags" } ),
+            "[$path/tags] Should NOT serve tags list";
     }
 }
 
@@ -412,15 +420,14 @@ is_deeply(
         "JSON encoded result with ?pretty is pretty";
 }
 
-{ note "test list_tags";
+{ note "serve_tags_list";
     my $mw = Plack::Middleware::HealthCheck->new(
         health_check => HealthCheck->new );
     my @content_type = ( 'Content-Type' => 'application/json; charset=utf-8' );
 
-    # Make sure it just needs to exist, not be set
-    my $env = {PATH_INFO => '/healthz', QUERY_STRING => 'list_tags'};
+    my $env = {};
 
-    is_deeply $mw->serve_health_check( $env ),
+    is_deeply $mw->serve_tags_list( $env ),
         [ 200, [@content_type], [qq([]) ] ],
         "list_tags returns an empty list when no tags are registered";
 
@@ -429,19 +436,19 @@ is_deeply(
             tags   => [qw( foo bar )],
             checks => [ sub { status => 'OK' } ] ) );
 
-    is_deeply $mw->serve_health_check( $env ),
+    is_deeply $mw->serve_tags_list( $env ),
         [ 200, [@content_type], [qq(["bar","foo"]) ] ],
         "list_tags returns a list of registered tags";
 
-    $env = {PATH_INFO => '/healthz', QUERY_STRING => 'list_tags&pretty'};
+    $env = {QUERY_STRING => 'pretty'};
 
-    is_deeply $mw->serve_health_check( $env ),
+    is_deeply $mw->serve_tags_list( $env ),
         [ 200, [@content_type], [qq([\n   "bar",\n   "foo"\n]\n) ] ],
         "list_tags works with pretty";
 
-    $env = {PATH_INFO => '/healthz', QUERY_STRING => 'list_tags&tags=foo'};
+    $env = {QUERY_STRING => 'tags=foo'};
 
-    is_deeply $mw->serve_health_check( $env ),
+    is_deeply $mw->serve_tags_list( $env ),
         [ 200, [@content_type], [qq(["bar","foo"]) ] ],
         "list_tags ignores provided list of tags";
 }
