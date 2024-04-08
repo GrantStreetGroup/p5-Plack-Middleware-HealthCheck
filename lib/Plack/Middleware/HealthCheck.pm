@@ -259,7 +259,7 @@ to L</health_check_response>.
 Called with the Plack C<$env> hash as an argument
 if L</should_serve_health_check> returns true.
 
-Calls L<HealthCheck/get_registered_tags|get_registered_tags> on the
+Calls L<get_registered_tags|HealthCheck/get_registered_tags> on the
 L<health_check> and returns the result of passing the list of tags to
 L</health_check_response>.
 
