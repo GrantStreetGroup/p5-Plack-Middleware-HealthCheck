@@ -4,7 +4,7 @@ Plack::Middleware::HealthCheck - A health check endpoint for your Plack app
 
 # VERSION
 
-version v0.0.5
+version v0.2.0
 
 # SYNOPSIS
 
@@ -30,7 +30,7 @@ like the one below, that does not include `runtime`.
 
 Since you don't want to serve this HealthCheck everywhere on the internet, you
 should limit its access,
-for example using [Plack::Middleware::Conditional](https://metacpan.org/pod/Plack::Middleware::Conditional) to limit by IP address.
+for example using [Plack::Middleware::Conditional](https://metacpan.org/pod/Plack%3A%3AMiddleware%3A%3AConditional) to limit by IP address.
 
     # Using enable_if
     use Plack::Builder;
@@ -109,27 +109,41 @@ the ["health\_check"](#health_check) check method with those parameters as well 
 Returns the result of passing the health check `$result`
 to ["health\_check\_response"](#health_check_response).
 
+## serve\_tags\_list
+
+Called with the Plack `$env` hash as an argument
+if ["should\_serve\_health\_check"](#should_serve_health_check) returns true.
+
+Calls [get\_registered\_tags](https://metacpan.org/pod/HealthCheck#get_registered_tags) on the
+[health\_check](https://metacpan.org/pod/health_check) and returns the result of passing the list of tags to
+["health\_check\_response"](#health_check_response).
+
 ## should\_serve\_health\_check
 
 Receives the Plack `$env` as an argument and returns a truthy value
 if `$env->{PATH_INFO}` matches any of the ["health\_check\_paths"](#health_check_paths).
 
+## should\_serve\_tags\_list
+
+Receives the Plack `$env` as an argument and returns a truthy value if `$env->{PATH_INFO}` matches any of the ["health\_check\_paths"](#health_check_paths) followed by
+`/tags`.
+
 ## health\_check\_response
 
 Takes a health check `$result` and returns a Plack response arrayref.
 
-Returns a 200 response if the `$result->{status}` is "OK",
-otherwise returns a 503.
+Returns a 200 response if the `$result->{status}` is "OK" or if the result
+is an array ref (for ["serve\_tags\_list"](#serve_tags_list)), otherwise returns a 503.
 
 The body of the response is the `$result` JSON encoded.
 
-Also takes an optional [Plack::Request](https://metacpan.org/pod/Plack::Request) object as a second argument
+Also takes an optional [Plack::Request](https://metacpan.org/pod/Plack%3A%3ARequest) object as a second argument
 which it will check for the existence of a `pretty` query parameter
 in which case it will make the JSON response both `pretty` and `canonical`.
 
 # DEPENDENCIES
 
-[Plack::Middleware](https://metacpan.org/pod/Plack::Middleware),
+[Plack::Middleware](https://metacpan.org/pod/Plack%3A%3AMiddleware),
 [HealthCheck](https://metacpan.org/pod/HealthCheck)
 
 # SEE ALSO
@@ -142,11 +156,11 @@ None
 
 # AUTHOR
 
-Grant Street Group &lt;developers@grantstreet.com>
+Grant Street Group <developers@grantstreet.com>
 
 # COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2019 - 2020 by Grant Street Group.
+This software is Copyright (c) 2019 - 2024 by Grant Street Group.
 
 This is free software, licensed under:
 
