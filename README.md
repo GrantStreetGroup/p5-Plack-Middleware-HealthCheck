@@ -4,7 +4,7 @@ Plack::Middleware::HealthCheck - A health check endpoint for your Plack app
 
 # VERSION
 
-version v0.2.0
+version v0.2.1
 
 # SYNOPSIS
 
